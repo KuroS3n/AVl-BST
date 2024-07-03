@@ -1,0 +1,219 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <conio.h>
+
+#define MAX_ITEMS 100 // Max heap
+
+struct item {
+    int id;
+    char nama[50];
+    int jumlah;
+};
+
+struct maxHeap {
+    struct item items[MAX_ITEMS];
+    int size;
+};
+
+struct maxHeap heap = { .size = 0 };
+
+void heapifyUp(int index) {
+    int parent = (index - 1) / 2;
+    if (index && heap.items[index].id > heap.items[parent].id) {
+        struct item temp = heap.items[index];
+        heap.items[index] = heap.items[parent];
+        heap.items[parent] = temp;
+        heapifyUp(parent);
+    }
+}
+
+void heapifyDown(int index) {
+    int largest = index;
+    int leftChild = 2 * index + 1;
+    int rightChild = 2 * index + 2;
+
+    // Mencari max
+    if (leftChild < heap.size && heap.items[leftChild].id > heap.items[largest].id) {
+        largest = leftChild;
+    }
+
+    if (rightChild < heap.size && heap.items[rightChild].id > heap.items[largest].id) {
+        largest = rightChild;
+    }
+
+    // Tuker jika node terbesar bukan node sekarang
+    if (largest != index) {
+        struct item temp = heap.items[index];
+        heap.items[index] = heap.items[largest];
+        heap.items[largest] = temp;
+        heapifyDown(largest);
+    }
+}
+
+//Insert baru
+void insert(int id, char nama[], int jumlah) {
+    if (heap.size == MAX_ITEMS) {
+        printf("Warehouse sudah penuh!!\n");
+        return;
+    }
+
+    //Check duplikat
+    for (int i = 0; i < heap.size; i++) {
+        if (heap.items[i].id == id) {
+            printf("Barang dengan ID: %d sudah ada di gudang\n", id);
+            return;
+        }
+    }
+    struct item newItem = { .id = id, .nama = "", .jumlah = jumlah };
+    strcpy(newItem.nama, nama);
+    heap.items[heap.size] = newItem;
+    heapifyUp(heap.size);
+    heap.size++;
+
+    printf("Barang Berhasil Ditambahkan:\n");
+    printf("ID: %d, Nama: %s, Jumlah: %d\n", id, nama, jumlah);
+}
+
+// Display semua
+void displayItem() {
+    if (heap.size == 0) {
+        printf("No items in the inventory.\n");
+        return;
+    }
+
+    printf("Barang di Warehouse:\n");
+    for (int i = 0; i < heap.size; i++) {
+        printf("ID: %d, Nama: %s, Jumlah: %d\n", heap.items[i].id, heap.items[i].nama, heap.items[i].jumlah);
+    }
+}
+
+// Cari item
+void searchItem(int id) {
+    for (int i = 0; i < heap.size; i++) {
+        if (heap.items[i].id == id) {
+            printf("Barang ditemukan:\n");
+            printf("ID: %d, Nama: %s, Jumlah: %d\n", heap.items[i].id, heap.items[i].nama, heap.items[i].jumlah);
+            return;
+        }
+    }
+    printf("Barang dengan ID: %d tidak ditemukan\n", id);
+}
+
+// Update item
+void updateItem(int id, char nama[], int jumlah) {
+    for (int i = 0; i < heap.size; i++) {
+        if (heap.items[i].id == id) {
+            printf("Sebelum di Update:\n");
+            printf("ID: %d, Nama: %s, Jumlah: %d\n", heap.items[i].id, heap.items[i].nama, heap.items[i].jumlah);
+
+            strcpy(heap.items[i].nama, nama);
+            heap.items[i].jumlah = jumlah;
+            heapifyDown(i);
+            heapifyUp(i);
+
+            printf("Sesudah di Update:\n");
+            printf("ID: %d, Nama: %s, Jumlah: %d\n", heap.items[i].id, heap.items[i].nama, heap.items[i].jumlah);
+            return;
+        }
+    }
+    printf("Barang dengan ID: %d tidak ditemukan\n", id);
+}
+
+// Delete
+void deleteItem(int id) {
+    int i;
+    for (i = 0; i < heap.size; i++) {
+        if (heap.items[i].id == id) {
+            break;
+        }
+    }
+
+    if (i == heap.size) {
+        printf("Barang dengan ID: %d tidak ditemukan\n", id);
+        return;
+    }
+
+    heap.items[i] = heap.items[--heap.size];
+    heapifyDown(i);
+    heapifyUp(i);
+
+    printf("Barang dengan ID: %d berhasil dihapus\n", id);
+}
+
+// Display menu
+void displayMenu() {
+    printf("Menu:\n");
+    printf("1. Input Barang\n");
+    printf("2. Update Barang\n");
+    printf("3. Delete Barang\n");
+    printf("4. Display Barang\n");
+    printf("5. Cari Barang\n");
+    printf("6. Exit\n");
+    printf("Pilih menu: ");
+}
+
+
+void returnToMenu() {
+    printf("Tekan enter untuk kembali ke menu...\n");
+    getchar();
+    getchar();
+}
+
+
+int main() {
+    int choice, id, jumlah;
+    char nama[50];
+
+    while (1) {
+        system("cls");
+        displayMenu();
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Masukkan ID Barang: ");
+                scanf("%d", &id); getchar();
+                printf("Masukkan Nama Barang: ");
+                scanf("%[^\n]", nama);
+                printf("Masukkan Jumlah Barang: ");
+                scanf("%d", &jumlah);
+                insert(id, nama, jumlah);
+                returnToMenu();
+                break;
+            case 2:
+                printf("Masukkan ID Barang yang ingin diupdate: ");
+                scanf("%d", &id); getchar();
+                printf("Masukkan Nama Barang Baru: ");
+                scanf("%[^\n]", nama);
+                printf("Masukkan Jumlah Barang Baru: ");
+                scanf("%d", &jumlah);
+                updateItem(id, nama, jumlah);
+                returnToMenu();
+                break;
+            case 3:
+                printf("Masukkan ID Barang yang ingin dihapus: ");
+                scanf("%d", &id);
+                deleteItem(id);
+                returnToMenu();
+                break;
+            case 4:
+                displayItem();
+                returnToMenu();
+                break;
+            case 5:
+                printf("Masukkan ID Barang yang ingin dicari: ");
+                scanf("%d", &id);
+                searchItem(id);
+                returnToMenu();
+                break;
+            case 6:
+                exit(0);
+            default:
+                printf("Pilihan tidak valid.\n");
+                returnToMenu();
+                break;
+        }
+    }
+    return 0;
+}
